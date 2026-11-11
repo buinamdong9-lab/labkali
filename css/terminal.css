@@ -1,0 +1,224 @@
+.terminal-pane {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background-color: var(--bg-terminal);
+}
+
+.terminal-output {
+  flex: 1;
+  padding: 12px 16px 32px 16px;
+  overflow-y: auto;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.45;
+  color: #dcdfe4;
+  white-space: pre-wrap;
+  word-break: break-word;
+  cursor: text;
+}
+
+/* Kali Linux 2-line ZSH Prompt & Sub-shell Prompts */
+.kali-prompt-block {
+  margin-top: 8px;
+}
+
+.kali-prompt-top {
+  color: #2ac3de;
+  line-height: 1.25;
+  user-select: text;
+}
+
+.kali-userhost {
+  color: #3b82f6;
+  font-weight: 700;
+}
+
+.kali-path {
+  color: #ffffff;
+  font-weight: 700;
+}
+
+.kali-prompt-bottom {
+  display: flex;
+  align-items: center;
+  line-height: 1.35;
+}
+
+.kali-bracket-bottom {
+  color: #2ac3de;
+}
+
+.kali-dollar {
+  color: #3b82f6;
+  font-weight: 700;
+  margin-right: 6px;
+}
+
+/* Sub-shell single-line prompts (msf6, smb, meterpreter, cmd) */
+.subshell-prompt-prefix {
+  color: #e5e9f0;
+  margin-right: 8px;
+  white-space: pre;
+}
+
+.subshell-msf {
+  color: #c0caf5;
+  text-decoration: underline;
+}
+
+.subshell-exploit {
+  color: #f7768e;
+  font-weight: 700;
+}
+
+.subshell-smb {
+  color: #e0af68;
+  font-weight: 600;
+}
+
+/* Inline Input directly on the terminal prompt line */
+.inline-input-wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex: 1;
+  min-width: 120px;
+}
+
+.inline-cmd-input {
+  width: 100%;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: #ffffff;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  line-height: 1.35;
+  padding: 0;
+  margin: 0;
+  caret-color: #ffffff;
+}
+
+.frozen-cmd-text {
+  color: #ffffff;
+}
+
+.term-response {
+  color: #cfd6e0;
+  margin-top: 2px;
+  margin-bottom: 6px;
+}
+
+/* Subtle, eye-friendly syntax highlights */
+.hl-ip {
+  color: #7dcfff;
+  font-weight: 600;
+}
+
+.hl-success {
+  color: #73daca;
+  font-weight: 600;
+}
+
+.hl-warn {
+  color: #7aa2f7;
+  font-weight: 600;
+}
+
+.hl-error {
+  color: #f7768e;
+  font-weight: 600;
+}
+
+.badge-vuln {
+  display: inline-block;
+  background-color: rgba(247, 118, 142, 0.2);
+  border: 1px solid #f7768e;
+  color: #ff9e64;
+  font-weight: 700;
+  padding: 0 6px;
+  border-radius: 3px;
+}
+
+/* TryHackMe Task Question & Flag Box */
+.scenario-card.task-solved {
+  border-color: var(--kali-green);
+  background: rgba(74, 222, 128, 0.04);
+}
+
+.thm-qa-box {
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-color);
+}
+
+.thm-question {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: #e2e8f0;
+  margin-bottom: 6px;
+}
+
+.thm-input-row {
+  display: flex;
+  gap: 5px;
+}
+
+.thm-ans-input {
+  flex: 1;
+  min-width: 0;
+  background: #14171d;
+  border: 1px solid var(--border-color);
+  color: #ffffff;
+  padding: 4px 8px;
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  border-radius: 4px;
+  outline: none;
+}
+
+.thm-ans-input:focus {
+  border-color: var(--kali-blue);
+}
+
+.btn-thm-submit {
+  background: rgba(74, 222, 128, 0.14);
+  border-color: rgba(74, 222, 128, 0.45);
+  color: var(--kali-green);
+  padding: 4px 9px;
+  font-size: 11px;
+}
+
+.btn-thm-hint {
+  padding: 4px 7px;
+  font-size: 11px;
+}
+
+.thm-feedback {
+  margin-top: 5px;
+  font-size: 11px;
+  padding: 4px 7px;
+  border-radius: 4px;
+}
+
+.thm-feedback.hidden {
+  display: none;
+}
+
+.thm-correct {
+  background: rgba(74, 222, 128, 0.12);
+  color: var(--kali-green);
+  font-weight: 600;
+}
+
+.thm-wrong {
+  background: rgba(248, 113, 113, 0.12);
+  color: var(--kali-red);
+}
+
+.thm-hint-text {
+  background: rgba(250, 204, 21, 0.1);
+  color: var(--kali-yellow);
+}

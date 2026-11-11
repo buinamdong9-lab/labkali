@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>kali@kali: ~ (QTerminal — Lab Simulation)</title>
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/terminal.css" />
+</head>
+<body>
+  <div class="app-container">
+    <!-- HEADER -->
+    <header class="app-header">
+      <div class="brand-title">
+        <span class="kali-dragon-badge">KALI</span>
+        <span>kali@kali: ~ — Lab Mô Phỏng (192.168.202.0/24)</span>
+      </div>
+      <div class="header-actions">
+        <button id="btnAutoDemo" class="btn btn-auto">▶ Auto Demo (9 Kịch bản)</button>
+        <button id="btnSound" class="btn">🔊 Sound: ON</button>
+        <button id="btnCopy" class="btn">📋 Copy</button>
+        <button id="btnReset" class="btn btn-danger">⟲ Clear / Reset</button>
+        <button id="btnInfo" class="btn">ℹ️ Sơ đồ mạng</button>
+      </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <div class="main-layout">
+      <!-- SIDEBAR -->
+      <aside class="sidebar">
+        <div>
+          <div class="sidebar-section-title">Mạng nội bộ (192.168.202.0/24)</div>
+          <div class="topology-card">
+            <div class="node-list">
+              <div class="node-item" id="node-kali">
+                <div>
+                  <strong>Kali Linux</strong>
+                  <div class="node-ip">192.168.202.132</div>
+                </div>
+                <span class="node-badge" style="color: #4c8bf5;">Attacker</span>
+              </div>
+              <div class="node-item" id="node-win7">
+                <div>
+                  <strong>Windows 7 SP1</strong>
+                  <div class="node-ip">192.168.202.137</div>
+                </div>
+                <span class="node-badge" id="badge-win7">Target 1</span>
+              </div>
+              <div class="node-item" id="node-ubuntu">
+                <div>
+                  <strong>Ubuntu Server</strong>
+                  <div class="node-ip">192.168.202.136</div>
+                </div>
+                <span class="node-badge" id="badge-ubuntu">Target 2</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="sidebar-section-title">Kịch bản Lab (Click lệnh để gõ)</div>
+          <div id="scenarioList" class="scenario-list"></div>
+        </div>
+      </aside>
+
+      <!-- KALI QTERMINAL PANE -->
+      <main class="terminal-pane">
+        <!-- QTERMINAL MENU BAR -->
+        <div class="qterminal-menubar">
+          <div class="qterminal-menus">
+            <span id="menuSession" title="Click để tạo phiên mới (Reset)">Session</span>
+            <span id="menuActions" title="Click để chạy Auto Demo">Actions</span>
+            <span id="menuEdit" title="Click để Copy toàn bộ nội dung">Edit</span>
+            <span id="menuView" title="Click để Ẩn/Hiện Sidebar kịch bản">View</span>
+            <span id="menuHelp" title="Click để gõ lệnh help">Help</span>
+          </div>
+          <div class="progress-wrapper">
+            <span id="statusText">Terminal Ready</span>
+            <div class="progress-track">
+              <div id="progressFill" class="progress-fill"></div>
+            </div>
+            <span id="progressPercent">0%</span>
+          </div>
+        </div>
+
+        <!-- INLINE TERMINAL OUTPUT + ACTIVE PROMPT -->
+        <div id="terminalOutput" class="terminal-output"></div>
+      </main>
+    </div>
+  </div>
+
+  <!-- INFO MODAL -->
+  <div id="infoModal" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <strong>🖥️ MÔ HÌNH LAB AN NINH MẠNG (192.168.202.0/24)</strong>
+        <button id="btnCloseModal" class="btn btn-danger">✕ Đóng</button>
+      </div>
+      <p style="font-size: 13px; color: var(--text-secondary);">
+        Môi trường mô phỏng QTerminal trên Kali Linux. Bạn có thể click thẳng vào màn hình Terminal để gõ lệnh trực tiếp tại dấu nhắc <code>└─$</code>.
+      </p>
+      <pre class="topology-ascii">
+Mạng nội bộ: 192.168.202.0/24
+
+┌─────────────────┐     ┌─────────────────┐
+│   Kali Linux    │────▶│   Windows 7     │
+│ 192.168.202.132 │     │ 192.168.202.137 │
+│  (Tấn công)     │     │  (Nạn nhân 1)   │
+└─────────────────┘     └─────────────────┘
+         │                      
+         │              ┌─────────────────┐
+         └─────────────▶│    Ubuntu       │
+                        │ 192.168.202.136 │
+                        │  (Nạn nhân 2)   │
+                        └─────────────────┘</pre>
+    </div>
+  </div>
+
+  <!-- MODULES -->
+  <script src="js/data/commands.js"></script>
+  <script src="js/data/scenarios.js"></script>
+  <script src="js/core/audio.js"></script>
+  <script src="js/core/kali-shell-sim.js"></script>
+  <script src="js/core/ftp-web-sim.js"></script>
+  <script src="js/core/ssh-lab-sim.js"></script>
+  <script src="js/core/command-resolver.js"></script>
+  <script src="js/core/terminal-engine.js"></script>
+  <script src="js/ui/thm-tasks.js"></script>
+  <script src="js/ui/app.js"></script>
+</body>
+</html>
