@@ -18,6 +18,7 @@ window.CommandResolver = (function () {
     if (window.KaliShellSim) window.KaliShellSim.resetFs();
     if (window.SshLabSim) window.SshLabSim.resetState();
     if (window.FtpWebSim) window.FtpWebSim.resetState();
+    if (window.RemediationSim) window.RemediationSim.resetState();
   }
 
   function reply(output, ok = true, nextShell = null) {
@@ -51,6 +52,11 @@ window.CommandResolver = (function () {
     }
     if (lower === "help") {
       return reply(window.LabData.COMMANDS["help"], true);
+    }
+
+    if (window.RemediationSim) {
+      const remRes = window.RemediationSim.handleRemediationCmd(cmd, lower);
+      if (remRes) return remRes;
     }
 
     if (window.SshLabSim) {

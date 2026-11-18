@@ -14,10 +14,10 @@
     <header class="app-header">
       <div class="brand-title">
         <span class="kali-dragon-badge">KALI</span>
-        <span>kali@kali: ~ — Lab Mô Phỏng (192.168.202.0/24)</span>
+        <span>kali@kali: ~ — Lab Mô Phỏng (192.168.202.0/24 & 192.168.100.0/24)</span>
       </div>
       <div class="header-actions">
-        <button id="btnAutoDemo" class="btn btn-auto">▶ Auto Demo (9 Kịch bản)</button>
+        <button id="btnAutoDemo" class="btn btn-auto">▶ Auto Demo (11 Kịch bản)</button>
         <button id="btnSound" class="btn">🔊 Sound: ON</button>
         <button id="btnCopy" class="btn">📋 Copy</button>
         <button id="btnReset" class="btn btn-danger">⟲ Clear / Reset</button>
@@ -36,7 +36,7 @@
               <div class="node-item" id="node-kali">
                 <div>
                   <strong>Kali Linux</strong>
-                  <div class="node-ip">192.168.202.132</div>
+                  <div class="node-ip">192.168.202.132 / .100.10</div>
                 </div>
                 <span class="node-badge" style="color: #4c8bf5;">Attacker</span>
               </div>
@@ -49,8 +49,8 @@
               </div>
               <div class="node-item" id="node-ubuntu">
                 <div>
-                  <strong>Target 2 (Ubuntu/Samba)</strong>
-                  <div class="node-ip">192.168.202.136</div>
+                  <strong>Target 2 (Ubuntu Server)</strong>
+                  <div class="node-ip">192.168.202.136 / .100.20</div>
                 </div>
                 <span class="node-badge" id="badge-ubuntu">Target 2</span>
               </div>
@@ -122,9 +122,11 @@ Mạng nội bộ: 192.168.202.0/24
 
   <!-- MODULES -->
   <script src="js/data/commands.js"></script>
+  <script src="js/data/commands-hardening.js"></script>
   <script src="js/data/scenarios.js"></script>
   <script src="js/core/audio.js"></script>
   <script src="js/core/kali-shell-sim.js"></script>
+  <script src="js/core/remediation-sim.js"></script>
   <script src="js/core/ftp-web-sim.js"></script>
   <script src="js/core/ssh-lab-sim.js"></script>
   <script src="js/core/command-resolver.js"></script>

@@ -176,6 +176,44 @@ window.LabData.SCENARIOS = {
     placeholder: "Nhập mật khẩu tìm thấy...",
     answers: ["123456@abc", "tai khoan: admin | mat khau: 123456@abc"],
     hint: "Dò thư mục bằng script http-enum rồi dùng 'curl http://192.168.202.136/admin/pass.txt'."
+  },
+  smb_hardening: {
+    id: "smb_hardening",
+    name: "Task 10: Kiểm thử & Khắc phục Khiếm khuyết SMB (MS17-010)",
+    description: "Trinh sát cổng 445, phát hiện giao thức SMBv1 nguy hiểm qua NSE smb-protocols, phân tích packet-trace và cấu hình chặn SMBv1 trên Ubuntu",
+    targetNode: "ubuntu",
+    commands: [
+      "ip a",
+      "ping -c 4 192.168.100.20",
+      "nmap -sV -O -p445 192.168.100.20",
+      "nmap -p445 --script smb-protocols 192.168.100.20",
+      "nmap -p445 --script smb-vuln-ms17-010,smb-vuln-ms08-067 --packet-trace 192.168.100.20",
+      "sudo nano /etc/samba/smb.conf",
+      "sudo systemctl restart smbd",
+      "nmap -p445 --script smb-protocols 192.168.100.20"
+    ],
+    question: "Tham số cần thêm vào /etc/samba/smb.conf để vô hiệu hóa SMBv1 là gì?",
+    placeholder: "VD: min protocol = SMB2",
+    answers: ["min protocol = smb2", "min protocol=smb2", "smb2", "min protocol = smb2;"],
+    hint: "Thêm dòng 'min protocol = SMB2' ngay dưới phân mục [global] rồi khởi động lại dịch vụ smbd."
+  },
+  vsftpd_backdoor_remediation: {
+    id: "vsftpd_backdoor_remediation",
+    name: "Task 11: Phát hiện & Đóng Cửa Hậu Dịch vụ FTP (vsftpd 2.3.4)",
+    description: "Thu thập banner cổng 21, quét phát hiện Backdoor vsftpd 2.3.4 (mở shell ẩn tại 6200/tcp), dừng dịch vụ và kiểm chứng sau khắc phục",
+    targetNode: "ubuntu",
+    commands: [
+      "nmap -sV -p21 --script=banner 192.168.100.20",
+      "nmap -p21 --script ftp-vsftpd-backdoor 192.168.100.20",
+      "nmap -p6200 192.168.100.20",
+      "sudo systemctl stop vsftpd",
+      "sudo systemctl disable vsftpd",
+      "nmap -p21,6200 192.168.100.20"
+    ],
+    question: "Cổng ẩn (backdoor port) mà vsftpd 2.3.4 mở ra khi phát hiện ký tự mặt cười :) là gì?",
+    placeholder: "VD: 6200",
+    answers: ["6200", "6200/tcp", "cổng 6200", "port 6200"],
+    hint: "Chạy 'nmap -p6200 192.168.100.20' để xác minh cổng ẩn lm-x đang mở."
   }
 };
 

@@ -244,7 +244,7 @@
     }
 
     if (!abortController.aborted) {
-      updateStatus("Hoàn tất toàn bộ 4 kịch bản", 100);
+      updateStatus("Hoàn tất toàn bộ 11 kịch bản Lab!", 100);
     }
     isRunningScenario = false;
     setControlsDisabled(false);

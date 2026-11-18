@@ -181,7 +181,7 @@ window.TerminalEngine = (function () {
       onStateChangeCallback({ activeNode: "ubuntu", compromised: "ubuntu" });
     } else if (cmd.includes("192.168.202.137")) {
       onStateChangeCallback({ activeNode: "win7" });
-    } else if (cmd.includes("192.168.202.136") || cmd === "ls" || cmd.includes("allowed.userlist") || currentShell.includes("ssh")) {
+    } else if (cmd.includes("192.168.202.136") || cmd.includes("192.168.100.20") || cmd === "ls" || cmd.includes("allowed.userlist") || currentShell.includes("ssh")) {
       onStateChangeCallback({ activeNode: "ubuntu" });
     }
   }
